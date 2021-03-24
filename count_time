@@ -1,0 +1,60 @@
+from flask import Flask
+import requests
+
+
+app = Flask(__name__)
+
+
+@app.route('/')
+def parse_request():
+    data = requests.get("https://localhost:port/get")
+    return show_answer(data=data.json())
+
+
+def show_answer(data):
+    return appearance(data)
+
+
+def count_person_time(get_time):
+
+    sum_time = []
+    lesson = get_time.get('lesson')
+    student = get_time.get('pupil')
+    teacher = get_time.get('tutor')
+
+    for i in range(len(student)):
+        if i % 2 == 0:
+            stud_in = i
+            stud_out = stud_in + 1 # выход, i - вход.
+            teach_in = 0 # вход учителя.
+            teach_out = teach_in + 1 # выход учителя.
+
+            if (lesson[1] >= student[stud_out]) and (student[stud_in] >= lesson[0]):
+                if student[stud_in] >= teacher[teach_in] and teacher[teach_out] >= student[stud_out]:
+                    count_time = student[stud_out] - student[stud_in]
+                    sum_time.append(count_time)
+                elif stud_out == len(student):
+                    break
+
+                else:
+                    count_time = teacher[teach_out] - student[stud_in]
+                    sum_time.append(count_time)
+                    teach_in = teach_out + 1
+                    new_count = student[stud_out] - teacher[teach_in]
+                    sum_time.append(new_count)
+
+        else:
+            continue
+
+    count_sum = sum(sum_time)
+    return count_sum
+
+
+def appearance(our_range):
+    task = count_person_time(our_range)
+    print(task)
+    return "Общее вермя на уроке - " + str(task) + " секунд."
+
+
+if __name__ == '__main__':
+    app.run()
